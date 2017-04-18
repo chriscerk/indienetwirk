@@ -75,6 +75,10 @@ def get_tag_names(artist):
 def get_lastFM_artist(query):
     first_search = network.search_for_artist(query)
     results_first = first_search.get_next_page()
+
+    if results_first is None:
+        return None
+
     if len(results_first) > 0:
         artist = results_first[0]
         if artist.listener_count > 3000:
@@ -109,12 +113,15 @@ def parse_post(submission):
     post_info['artist_release'] = m.group('release')
     post_info['tag'] = m.group('tag')
     post_info['score'] = submission.score
+    post_info['comment_count'] = len(submission.comments._comments)
 
     if submission.media:
-        post_info['comment_count'] = len(submission.comments._comments)
-        post_info['media_thumbnail'] = submission.media['oembed']['thumbnail_url']
-        post_info['media_embed'] = submission.media['oembed']['html']
         post_info['media_type'] = submission.media['type']
+        try:
+            post_info['media_thumbnail'] = submission.media['oembed']['thumbnail_url']
+            post_info['media_embed'] = submission.media['oembed']['html']
+        except:
+            pass
 
     post_info['key'] = unique_id
     posts.append(post_info)
@@ -137,7 +144,7 @@ posts = list()
 
 print('Artist - Release')
 print("----------")
-post_count = 1000
+post_count = 500
 for submission in subreddit.top(limit=post_count):
     parse_post(submission)
 
